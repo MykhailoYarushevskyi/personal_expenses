@@ -51,42 +51,6 @@ class _MyHomePageState extends State<MyHomePage> {
       amount: 1.01,
       date: DateTime.now(),
     ),
-    new Transaction(
-      id: '2',
-      title: 'two',
-      amount: 2.01,
-      date: DateTime.now(),
-    ),
-    new Transaction(
-      id: '3',
-      title: 'three',
-      amount: 3.2,
-      date: DateTime.now(),
-    ),
-    new Transaction(
-      id: '4',
-      title: 'four',
-      amount: 4.1,
-      date: DateTime.now(),
-    ),
-    new Transaction(
-      id: '5',
-      title: 'five',
-      amount: 5.57,
-      date: DateTime.now(),
-    ),
-    new Transaction(
-      id: '6',
-      title: 'six',
-      amount: 6.81,
-      date: DateTime.now(),
-    ),
-    new Transaction(
-      id: '7',
-      title: 'seven',
-      amount: 7.45,
-      date: DateTime.now(),
-    ),
   ];
 
   List<Transaction> get _recentTransactions {
