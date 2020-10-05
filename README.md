@@ -1,4 +1,8 @@
-# combining_widgets
+Project 'personal expenses', that is developing during the studying of Flutter and Dart at the course "Flutter & Dart - The Complete Guide" by Maximilian Schwarzmüller on Udemy.
+
+Farther is text from README.md of the course:
+
+# personal expenses
 
 A new Flutter project.
 
