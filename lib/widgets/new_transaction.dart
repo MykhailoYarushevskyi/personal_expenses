@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NewTransaction extends StatefulWidget {
-  final Function addToList;
-  NewTransaction(this.addToList);
+  final Function addNewTransaction;
+  NewTransaction(this.addNewTransaction);
 
   @override
   _NewTransactionState createState() => _NewTransactionState();
 }
 
 class _NewTransactionState extends State<NewTransaction> {
-  final titleController = TextEditingController();
-  final amountController = TextEditingController();
-
-  bool isEmptyOrNull(String text) {
-    if (text == null || text == "") return true;
-    return false;
-  }
+  final _titleController = TextEditingController();
+  final _amountController = TextEditingController();
+  DateTime _selectedDate;
 
   void showError(BuildContext context, String errorText) {
     showModalBottomSheet(
@@ -31,20 +28,37 @@ class _NewTransactionState extends State<NewTransaction> {
         });
   }
 
-  void submitData() {
-    if (isEmptyOrNull(titleController.text) ||
-        isEmptyOrNull(amountController.text)) {
+  void _submitData() {
+    if (_titleController.text.isEmpty ||
+        _titleController.text == null ||
+        _amountController.text.isEmpty ||
+        _amountController.text == null ||
+        _selectedDate == null) {
       showError(context, 'Some Data is empty or null!');
       return;
     }
-    String enteredTitle = titleController.text;
-    double enteredAmount = double.parse(amountController.text);
+    String enteredTitle = _titleController.text;
+    double enteredAmount = double.parse(_amountController.text);
     if (enteredAmount <= 0) {
       showError(context, 'The amount must be greater than 0!');
       return;
     }
-    widget.addToList(enteredTitle, enteredAmount);
+    widget.addNewTransaction(enteredTitle, enteredAmount, _selectedDate);
     Navigator.of(context).pop();
+  }
+
+  void _presentDatePicker() {
+    showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2019),
+            lastDate: DateTime.now())
+        .then((pickedDate) {
+      if (pickedDate == null) return;
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    });
   }
 
   @override
@@ -64,24 +78,47 @@ class _NewTransactionState extends State<NewTransaction> {
               // onChanged: (value) {
               //   inputTitle = value;
               // },
-              controller: titleController,
+              controller: _titleController,
               // keyboardType: TextInputType.text,
-              onSubmitted: (_) => submitData(),
+              onSubmitted: (_) => _submitData(),
             ),
             TextField(
               decoration: InputDecoration(
                 labelText: "Amount",
               ),
               // onChanged: (value) => inputAmount = value,
-              controller: amountController,
+              controller: _amountController,
               keyboardType: TextInputType.number,
-              onSubmitted: (_) => submitData(),
-              // onSubmitted: (str) => submitData, (if submitData() is with String argument)
+              onSubmitted: (_) => _submitData(),
+              // onSubmitted: (str) => _submitData, (if _submitData() is with String argument)
             ),
-            FlatButton(
+            Container(
+              height: 70,
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Text(_selectedDate == null
+                      ? 'No Date chosen'
+                      : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}'),
+                ),
+                FlatButton(
+                  onPressed: () => _presentDatePicker(),
+                  textColor: Theme.of(context).primaryColor,
+                  child: Text(
+                    'Choose Date',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    // style: TextStyle(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+              ]),
+            ),
+            RaisedButton(
               child: Text("Add transaction"),
-              textColor: Colors.purple,
-              onPressed: submitData,
+              color: Theme.of(context).primaryColor,
+              textColor: Theme.of(context).textTheme.button.color,
+              // textColor: Theme.of(context).buttonColor,
+              onPressed: _submitData,
             ),
           ],
         ),
