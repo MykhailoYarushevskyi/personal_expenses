@@ -108,19 +108,21 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       // body: SingleChildScrollView(
-      body: Column(
-        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        // mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        // crossAxisAlignment: CrossAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        // crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Chart(_recentTransactions),
-          TransactionList(_userTransactions, deleteTransaction),
-          // Container(height: 50, child: Text('BOTTOM Child TEST')),
-        ],
+      body: SingleChildScrollView(
+              child: Column(
+          // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          // crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Chart(_recentTransactions),
+            TransactionList(_userTransactions, deleteTransaction),
+            // Container(height: 50, child: Text('BOTTOM Child TEST')),
+          ],
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
