@@ -1,11 +1,22 @@
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import './widgets/new_transaction.dart';
 import './widgets/transaction_list.dart';
 import './models/transaction.dart';
 import './widgets/chart.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  // //It expression must be written before the next operator
+  // WidgetsFlutterBinding.ensureInitialized();
+  // //Set possible screen orientations
+  // SystemChrome.setPreferredOrientations(
+  //   [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+  // );
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -47,6 +58,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _userTransactions = [];
+  bool showChart = false;
 
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((transaction) {
@@ -95,21 +107,59 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext buildContext) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Personal Expenses"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add_box),
-            onPressed: () {
-              _startAddNewTransaction(buildContext);
-            },
-          ),
-        ],
-      ),
-      // body: SingleChildScrollView(
-      body: SingleChildScrollView(
-              child: Column(
+    final mediaQuery = MediaQuery.of(context);
+    final bool isLandscape = mediaQuery.orientation == Orientation.landscape;
+    //appbar instanse:
+    //if we do not explicitly specify the PreferredSizeWidget type for
+    //the 'appBar' instance, then using 'appBar' in 'navigationBar:'
+    //causes an error, because Dart cannot infer this type implicitly.
+    final PreferredSizeWidget appBar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: Text("Personal Expenses"),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                GestureDetector(
+                  child: Icon(CupertinoIcons.add),
+                  onTap: () {
+                    _startAddNewTransaction(buildContext);
+                  },
+                ),
+              ],
+            ),
+          )
+        : AppBar(
+            title: Text("Personal Expenses"),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.add_box),
+                onPressed: () {
+                  _startAddNewTransaction(buildContext);
+                },
+              ),
+            ],
+          );
+
+    final chart = Container(
+      height: (mediaQuery.size.height -
+              appBar.preferredSize.height -
+              mediaQuery.padding.top) *
+          (isLandscape ? 0.7 : .30),
+      child: Chart(_recentTransactions),
+    );
+
+    final txListWidget = Container(
+      height: (mediaQuery.size.height -
+              appBar.preferredSize.height -
+              mediaQuery.padding.top) *
+          0.70,
+      child: TransactionList(_userTransactions, deleteTransaction),
+    );
+
+    final pageBody = SafeArea(
+      //for IOs
+      child: SingleChildScrollView(
+        child: Column(
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           // mainAxisAlignment: MainAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -118,17 +168,54 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           // crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Chart(_recentTransactions),
-            TransactionList(_userTransactions, deleteTransaction),
+            if (isLandscape) //!!! do not use{} for "'if' in the List"
+              //Switch added for more correct work in landscape mode
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Show Chart',
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  Switch.adaptive(
+                    //adaptive - adjust the look based on the platform
+                    activeColor: Theme.of(context).accentColor,
+                    value: showChart,
+                    onChanged: (val) {
+                      setState(() {
+                        showChart = val;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (isLandscape)
+              showChart ? chart : txListWidget
+            else ...[chart, txListWidget]
+
             // Container(height: 50, child: Text('BOTTOM Child TEST')),
+            ,
           ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () => _startAddNewTransaction(buildContext),
-      ),
     );
+
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+            child: pageBody,
+            navigationBar: appBar,
+          )
+        : Scaffold(
+            appBar: appBar,
+            body: pageBody,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: Platform.isIOS
+                ? Container()
+                : FloatingActionButton(
+                    child: Icon(Icons.add),
+                    onPressed: () => _startAddNewTransaction(buildContext),
+                  ),
+          );
   }
 }

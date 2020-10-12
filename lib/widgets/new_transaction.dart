@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/adaptive_flat_button.dart';
 
 class NewTransaction extends StatefulWidget {
   final Function addNewTransaction;
@@ -63,64 +67,71 @@ class _NewTransactionState extends State<NewTransaction> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 8,
-      child: Container(
-        // margin: EdgeInsets.all(12),
-        padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            TextField(
-              decoration: InputDecoration(
-                labelText: "Title",
-              ),
-              // onChanged: (value) {
-              //   inputTitle = value;
-              // },
-              controller: _titleController,
-              // keyboardType: TextInputType.text,
-              onSubmitted: (_) => _submitData(),
-            ),
-            TextField(
-              decoration: InputDecoration(
-                labelText: "Amount",
-              ),
-              // onChanged: (value) => inputAmount = value,
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              onSubmitted: (_) => _submitData(),
-              // onSubmitted: (str) => _submitData, (if _submitData() is with String argument)
-            ),
-            Container(
-              height: 70,
-              child: Row(children: <Widget>[
-                Expanded(
-                  child: Text(_selectedDate == null
-                      ? 'No Date chosen'
-                      : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}'),
+    final mediaQueryData = MediaQuery.of(context);
+    final bool isLandscape =
+        mediaQueryData.orientation == Orientation.landscape;
+    //SingleChildScrollView - for avoiding the overflow
+    //during the use of a soft keyboard
+    return SingleChildScrollView(
+      child: Card(
+        elevation: 8,
+        child: Container(
+          // margin: EdgeInsets.all(12),
+          padding: EdgeInsets.only(
+            top: 10,
+            left: 10,
+            right: 10,
+            //it's done for that current TextField will be
+            //left available for input the data
+            bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              TextField(
+                decoration: InputDecoration(
+                  labelText: "Title",
                 ),
-                FlatButton(
-                  onPressed: () => _presentDatePicker(),
-                  textColor: Theme.of(context).primaryColor,
-                  child: Text(
-                    'Choose Date',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    // style: TextStyle(color: Theme.of(context).primaryColor),
+                // onChanged: (value) {
+                //   inputTitle = value;
+                // },
+                controller: _titleController,
+                // keyboardType: TextInputType.text,
+                onSubmitted: (_) => _submitData(),
+              ),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: "Amount",
+                ),
+                // onChanged: (value) => inputAmount = value,
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                onSubmitted: (_) => _submitData(),
+                // onSubmitted: (str) => _submitData, (if _submitData() is with String argument)
+              ),
+              Container(
+                height: 70,
+                child: Row(children: <Widget>[
+                  Expanded(
+                    child: Text(_selectedDate == null
+                        ? 'No Date chosen'
+                        : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}'),
                   ),
+                  AdaptiveFlatButton('Choose Date', _presentDatePicker),
+                ]),
+              ),
+              RaisedButton(
+                child: Text(
+                  "Add transaction",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ]),
-            ),
-            RaisedButton(
-              child: Text("Add transaction"),
-              color: Theme.of(context).primaryColor,
-              textColor: Theme.of(context).textTheme.button.color,
-              // textColor: Theme.of(context).buttonColor,
-              onPressed: _submitData,
-            ),
-          ],
+                color: Theme.of(context).primaryColor,
+                textColor: Theme.of(context).textTheme.button.color,
+                // textColor: Theme.of(context).buttonColor,
+                onPressed: _submitData,
+              ),
+            ],
+          ),
         ),
       ),
     );
