@@ -3,18 +3,24 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+
 import './widgets/new_transaction.dart';
 import './widgets/transaction_list.dart';
 import './models/transaction.dart';
 import './widgets/chart.dart';
 
 void main() {
-  // //It expression must be written before the next operator
+  // //This expression should be written before the setting screen orientations:
   // WidgetsFlutterBinding.ensureInitialized();
-  // //Set possible screen orientations
-  // SystemChrome.setPreferredOrientations(
-  //   [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
-  // );
+  //Set possible screen orientations
+/*   SystemChrome.setPreferredOrientations(
+    [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ],
+  ); */
   runApp(MyApp());
 }
 
@@ -105,6 +111,63 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  List<Widget> _builderLandscapeContent(Widget chart, Widget txListWidget) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Show Chart',
+            style: Theme.of(context).textTheme.headline6,
+          ),
+          //Switch added for to make more correct screen view in landscape mode
+          Switch.adaptive(
+            //adaptive - adjust the look based on the platform
+            activeColor: Theme.of(context).accentColor,
+            value: showChart,
+            onChanged: (val) {
+              setState(() {
+                showChart = val;
+              });
+            },
+          ),
+        ],
+      ),
+      showChart ? chart : txListWidget
+    ];
+  }
+
+  Widget _builderCupertinoAppBar(BuildContext buildContext) {
+    return CupertinoNavigationBar(
+      middle: Text("Personal Expenses"),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          GestureDetector(
+            child: Icon(CupertinoIcons.add),
+            onTap: () {
+              _startAddNewTransaction(buildContext);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _builderAndroidAppBar(BuildContext buildContext) {
+    return AppBar(
+      title: Text("Personal Expenses"),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.add_box),
+          onPressed: () {
+            _startAddNewTransaction(buildContext);
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext buildContext) {
     final mediaQuery = MediaQuery.of(context);
@@ -114,31 +177,8 @@ class _MyHomePageState extends State<MyHomePage> {
     //the 'appBar' instance, then using 'appBar' in 'navigationBar:'
     //causes an error, because Dart cannot infer this type implicitly.
     final PreferredSizeWidget appBar = Platform.isIOS
-        ? CupertinoNavigationBar(
-            middle: Text("Personal Expenses"),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                GestureDetector(
-                  child: Icon(CupertinoIcons.add),
-                  onTap: () {
-                    _startAddNewTransaction(buildContext);
-                  },
-                ),
-              ],
-            ),
-          )
-        : AppBar(
-            title: Text("Personal Expenses"),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.add_box),
-                onPressed: () {
-                  _startAddNewTransaction(buildContext);
-                },
-              ),
-            ],
-          );
+        ? _builderCupertinoAppBar(buildContext)
+        : _builderAndroidAppBar(buildContext);
 
     final chart = Container(
       height: (mediaQuery.size.height -
@@ -156,8 +196,9 @@ class _MyHomePageState extends State<MyHomePage> {
       child: TransactionList(_userTransactions, deleteTransaction),
     );
 
+    // Safe Area included for IOs in order to a navigationBar
+    //not overlapping widget below
     final pageBody = SafeArea(
-      //for IOs
       child: SingleChildScrollView(
         child: Column(
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -168,33 +209,8 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           // crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            if (isLandscape) //!!! do not use{} for "'if' in the List"
-              //Switch added for more correct work in landscape mode
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    'Show Chart',
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
-                  Switch.adaptive(
-                    //adaptive - adjust the look based on the platform
-                    activeColor: Theme.of(context).accentColor,
-                    value: showChart,
-                    onChanged: (val) {
-                      setState(() {
-                        showChart = val;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            if (isLandscape)
-              showChart ? chart : txListWidget
-            else ...[chart, txListWidget]
-
-            // Container(height: 50, child: Text('BOTTOM Child TEST')),
-            ,
+            if (isLandscape) ..._builderLandscapeContent(chart, txListWidget),
+            if (!isLandscape) ...[chart, txListWidget],
           ],
         ),
       ),
