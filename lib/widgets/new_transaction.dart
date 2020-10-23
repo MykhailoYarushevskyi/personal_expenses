@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -9,16 +7,43 @@ import '../widgets/adaptive_flat_button.dart';
 
 class NewTransaction extends StatefulWidget {
   final Function addNewTransaction;
-  NewTransaction(this.addNewTransaction);
+  NewTransaction(this.addNewTransaction) {
+    print("## Constractor NewTransaction Widget");
+  }
 
   @override
-  _NewTransactionState createState() => _NewTransactionState();
+  _NewTransactionState createState() {
+    print("## createState NewTransaction Widget");
+    return _NewTransactionState();
+  }
+  // _NewTransactionState createState() => _NewTransactionState();
 }
 
 class _NewTransactionState extends State<NewTransaction> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime _selectedDate;
+
+  _NewTransactionState() {
+    // print("## Constractor NewTransaction State");
+  }
+  @override
+  void initState() {
+    super.initState();
+    // print("## initState() of _NewTransactionState");
+  }
+
+  @override
+  void didUpdateWidget(covariant NewTransaction oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // print("## didUpdateWidget(oldWidget) of _NewTransactionState");
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // print("## dispose() of _NewTransactionState");
+  }
 
   void showError(BuildContext context, String errorText) {
     showModalBottomSheet(
@@ -70,8 +95,9 @@ class _NewTransactionState extends State<NewTransaction> {
   @override
   Widget build(BuildContext context) {
     final mediaQueryData = MediaQuery.of(context);
-    final bool isLandscape =
-        mediaQueryData.orientation == Orientation.landscape;
+    // final bool isLandscape =
+    //     mediaQueryData.orientation == Orientation.landscape;
+
     //SingleChildScrollView - for avoiding the overflow
     //during the use of a soft keyboard
     return SingleChildScrollView(
@@ -85,7 +111,7 @@ class _NewTransactionState extends State<NewTransaction> {
             right: 10,
             //it's done for that current TextField will be
             //left available for input the data
-            bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+            bottom: mediaQueryData.viewInsets.bottom + 10,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,

@@ -62,9 +62,37 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final List<Transaction> _userTransactions = [];
   bool showChart = false;
+  // final mediaQuery = MediaQuery.of(context);
+
+  @override
+  void initState() {
+    super.initState();
+    // add an observer to observeth the change App lifecycle State
+    // and call didChangeAppLifecycleState() on  any change
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    /* for example:
+    I/flutter (22065): ## AppLifecycleState.inactive
+I/flutter (22065): ## AppLifecycleState.paused
+I/flutter (22065): ## AppLifecycleState.resumed
+I/flutter (22065): ## AppLifecycleState.inactive
+I/flutter (22065): ## AppLifecycleState.paused
+I/flutter (22065): ## AppLifecycleState.detached */
+    print('## $state');
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    //remove an observer the change App lifecycle State
+    WidgetsBinding.instance.removeObserver(this);
+  }
 
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((transaction) {
@@ -99,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _startAddNewTransaction(BuildContext buildContext) {
     showModalBottomSheet(
       context: buildContext,
-      builder: (_) {
+      builder: (context) {
         return NewTransaction(_addNewTransaction);
         /* // For the older versions of Flutter, to avoid close BottomSheet with "tap"
          return GestureDetector(
@@ -111,7 +139,23 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  List<Widget> _builderLandscapeContent(Widget chart, Widget txListWidget) {
+  List<Widget> _builderLandscapeContent(
+      MediaQueryData mediaQuery, PreferredSizeWidget appBar) {
+    final chart = Container(
+      height: (mediaQuery.size.height -
+              appBar.preferredSize.height -
+              mediaQuery.padding.top) *
+          0.7,
+      child: Chart(_recentTransactions),
+    );
+    final txListWidget = Container(
+      height: (mediaQuery.size.height -
+              appBar.preferredSize.height -
+              mediaQuery.padding.top) *
+          0.70,
+      child: TransactionList(_userTransactions, deleteTransaction),
+    );
+
     return [
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -137,54 +181,13 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
   }
 
-  Widget _builderCupertinoAppBar(BuildContext buildContext) {
-    return CupertinoNavigationBar(
-      middle: Text("Personal Expenses"),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          GestureDetector(
-            child: Icon(CupertinoIcons.add),
-            onTap: () {
-              _startAddNewTransaction(buildContext);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _builderAndroidAppBar(BuildContext buildContext) {
-    return AppBar(
-      title: Text("Personal Expenses"),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.add_box),
-          onPressed: () {
-            _startAddNewTransaction(buildContext);
-          },
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext buildContext) {
-    final mediaQuery = MediaQuery.of(context);
-    final bool isLandscape = mediaQuery.orientation == Orientation.landscape;
-    //appbar instanse:
-    //if we do not explicitly specify the PreferredSizeWidget type for
-    //the 'appBar' instance, then using 'appBar' in 'navigationBar:'
-    //causes an error, because Dart cannot infer this type implicitly.
-    final PreferredSizeWidget appBar = Platform.isIOS
-        ? _builderCupertinoAppBar(buildContext)
-        : _builderAndroidAppBar(buildContext);
-
+  List<Widget> _builderPortraiteContent(
+      MediaQueryData mediaQuery, PreferredSizeWidget appBar) {
     final chart = Container(
       height: (mediaQuery.size.height -
               appBar.preferredSize.height -
               mediaQuery.padding.top) *
-          (isLandscape ? 0.7 : .30),
+          .30,
       child: Chart(_recentTransactions),
     );
 
@@ -195,6 +198,53 @@ class _MyHomePageState extends State<MyHomePage> {
           0.70,
       child: TransactionList(_userTransactions, deleteTransaction),
     );
+
+    return [chart, txListWidget];
+  }
+
+  Widget _builderCupertinoAppBar() {
+    // Widget _builderCupertinoAppBar(BuildContext buildContext) {
+    return CupertinoNavigationBar(
+      middle: Text("Personal Expenses"),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          GestureDetector(
+            child: Icon(CupertinoIcons.add),
+            onTap: () {
+              _startAddNewTransaction(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _builderAndroidAppBar() {
+    return AppBar(
+      title: Text("Personal Expenses"),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.add_box),
+          onPressed: () {
+            _startAddNewTransaction(context);
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // if (buildContext == context) print('## buildcontext == context is TRUE');
+    final mediaQuery = MediaQuery.of(context);
+    final bool isLandscape = mediaQuery.orientation == Orientation.landscape;
+    //appbar instanse:
+    //if we do not explicitly specify the PreferredSizeWidget type for
+    //the 'appBar' instance, then using 'appBar' in 'navigationBar:'
+    //causes an error, because Dart cannot infer this type implicitly.
+    final PreferredSizeWidget appBar =
+        Platform.isIOS ? _builderCupertinoAppBar() : _builderAndroidAppBar();
 
     // Safe Area included for IOs in order to a navigationBar
     //not overlapping widget below
@@ -209,8 +259,8 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           // crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            if (isLandscape) ..._builderLandscapeContent(chart, txListWidget),
-            if (!isLandscape) ...[chart, txListWidget],
+            if (isLandscape) ..._builderLandscapeContent(mediaQuery, appBar),
+            if (!isLandscape) ..._builderPortraiteContent(mediaQuery, appBar),
           ],
         ),
       ),
@@ -230,7 +280,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ? Container()
                 : FloatingActionButton(
                     child: Icon(Icons.add),
-                    onPressed: () => _startAddNewTransaction(buildContext),
+                    onPressed: () => _startAddNewTransaction(context),
                   ),
           );
   }

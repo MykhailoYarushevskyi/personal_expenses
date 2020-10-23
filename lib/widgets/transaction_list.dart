@@ -28,11 +28,25 @@ class TransactionList extends StatelessWidget {
               );
             },
           )
-        : ListView.builder(
+          //On the 10.2020 ListView.buidler has a bug when using key argument
+/*         : ListView.builder( 
             itemBuilder: (context, index) {
-              return TransactionItem(transaction: transactions[index], deleteTransaction: deleteTransaction);
+              return TransactionItem(
+                  // key: UniqueKey(), //not use random generated key
+                  key: ValueKey(transactions[index].id),
+                  transaction: transactions[index],
+                  deleteTransaction: deleteTransaction);
             },
             itemCount: transactions.length,
-          );
+          ); */
+          //Therefore we use ListView constructor:
+        : ListView(
+            children: transactions
+                .map((tx) => TransactionItem(
+                    // key: UniqueKey(), //not use random generated key
+                    key: ValueKey(tx.id),
+                    transaction: tx,
+                    deleteTransaction: deleteTransaction))
+                .toList());
   }
 }
